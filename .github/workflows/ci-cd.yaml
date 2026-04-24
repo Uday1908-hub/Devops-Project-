@@ -1,0 +1,32 @@
+name: Build and Deploy using Azure
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Build Image in Azure (ACR)
+      run: |
+        az acr build \
+          --registry ${{ secrets.ACR_NAME }} \
+          --image devops-demo:latest \
+          --file app/Dockerfile \
+          .
+
+    - name: AKS Deploy
+      run: |
+        az aks get-credentials \
+          --resource-group ${{ secrets.RESOURCE_GROUP }} \
+          --name ${{ secrets.AKS_CLUSTER }} \
+          --overwrite-existing
+        kubectl apply -f k8s/
