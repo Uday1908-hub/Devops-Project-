@@ -23,7 +23,7 @@ jobs:
           --registry ${{ secrets.ACR_NAME }} \
           --image devops-demo:latest \
           --file app/Dockerfile \
-          .
+          
 
     - name: AKS Deploy
       run: |
