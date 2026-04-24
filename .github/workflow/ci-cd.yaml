@@ -1,35 +1,32 @@
+name: Build and Deploy using Azure
 
-name: CI/CD Pipeline
 on:
-push:
-branches:
-- main
+  push:
+    branches: [ "main" ]
+
 jobs:
-build-deploy:
-runs-on: ubuntu-latest
-steps:
-- name: Checkout code
-uses: actions/checkout@v3
-- name: Login to Azure
-uses: azure/login@v1
-with:
-creds: ${{ secrets.AZURE_CREDENTIALS }}
-- name: Login to ACR
-run: az acr login --name ${{ secrets.ACR_NAME }}
-- name: Build Docker Image
-run: |
-docker build -t devops-app ./app
-- name: Tag Image
-run: |
-docker tag devops-app ${{ secrets.ACR_NAME }}.azurecr.io/devops-app:latest
-- name: Push Image
-run: |
-docker push ${{ secrets.ACR_NAME }}.azurecr.io/devops-app:latest
-- name: Get AKS Credentials
-run: |
-az aks get-credentials \
---name ${{ secrets.AKS_CLUSTER }} \
---resource-group ${{ secrets.RESOURCE_GROUP }}
-- name: Deploy to AKS
-run: |
-kubectl apply -f k8s/
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Build Image in Azure (ACR)
+      run: |
+        az acr build \
+          --registry ${{ secrets.ACR_NAME }} \
+          --image devops-demo:latest \
+          --file app/Dockerfile \
+          .
+
+    - name: AKS Deploy
+      run: |
+        az aks get-credentials \
+          --resource-group ${{ secrets.RESOURCE_GROUP }} \
+          --name ${{ secrets.AKS_CLUSTER }} \
+          --overwrite-existing
+        kubectl apply -f k8s/
