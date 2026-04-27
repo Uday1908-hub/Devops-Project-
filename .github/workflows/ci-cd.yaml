@@ -25,10 +25,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+<<<<<<< HEAD
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+=======
+    - name: Build Image in Azure (ACR)
+      run: |
+        az acr build \
+          --registry ${{ secrets.ACR_NAME }} \
+          --image devops-demo:latest \
+          --file app/Dockerfile \
+          
+>>>>>>> dbdaa8b6c0681edaf1e34845e35a9ab63242f1ca
 
       - name: Install dependencies
         run: |
